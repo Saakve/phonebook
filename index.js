@@ -78,7 +78,7 @@ app.use((req, res) => {
   res.status(404).end()	
 })
 
-const PORT = 3007
+const PORT = process.env.PORT || 3007
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
