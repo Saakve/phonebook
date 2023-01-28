@@ -17,22 +17,22 @@ let persons = [
     { 
       "id": 1,
       "name": "Arto Hellas", 
-      "number": "040-123456"
+      "phone": "040-123456"
     },
     { 
       "id": 2,
       "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
+      "phone": "39-44-5323523"
     },
     { 
       "id": 3,
       "name": "Dan Abramov", 
-      "number": "12-43-234345"
+      "phone": "12-43-234345"
     },
     { 
       "id": 4,
       "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
+      "phone": "39-23-6423122"
     }
 ]
 
@@ -53,12 +53,12 @@ app.get('/api/persons', (req, res) => {
 
 app.post('/api/persons', (req, res, next) => {
   const id = Math.ceil(Math.random() * 1000000)
-  const { name, number } = req.body
+  const { name, phone } = req.body
 
-  if(!name || !number) return res.status(400).send({error: 'name or number is missing'})
+  if(!name || !phone) return res.status(400).send({error: 'name or phone is missing'})
   if(persons.some(person => person.name === name)) return res.status(409).send({error: 'name already exists'})
   
-  const newPerson = {id, name, number}
+  const newPerson = {id, name, phone}
   persons = [...persons, newPerson]
   res.json(persons)
 })
