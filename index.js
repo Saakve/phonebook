@@ -13,19 +13,23 @@ app.use(cors())
 app.use(express.json())
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
-app.get('/info', (req, res) => {
-  Person.estimatedDocumentCount().then( totalEntries => {
+app.get('/info', (req, res, next) => {
+  Person.estimatedDocumentCount()
+  .then( totalEntries => {
     res.send(`
       <p>Phonebook has info for ${totalEntries} people</p>
       <p>${Date()}</p>
     `)
   })
+  .catch(next)
 })
 
-app.get('/api/persons', (req, res) => {
-  Person.find({}).then( result => {
+app.get('/api/persons', (req, res, next) => {
+  Person.find({})
+  .then( result => {
     res.json(result)
   })
+  .catch(next)
 })
 
 app.post('/api/persons', (req, res, next) => {
@@ -33,10 +37,13 @@ app.post('/api/persons', (req, res, next) => {
 
   if(!name || !phone) return res.status(400).send({error: 'name or phone is missing'})
 
-  Person.create({name, phone}).then( () => {
-    Person.find({}).then( persons => res.json(persons))
+  Person.create({name, phone})
+  .then( () => {
+    Person.find({})
+    .then(persons => res.json(persons))
+    .catch(next)
   })
-
+  .catch(next)
 })
 
 app.get('/api/persons/:id', (req, res, next) => {
@@ -44,25 +51,45 @@ app.get('/api/persons/:id', (req, res, next) => {
   
   Person.findById(id)
   .then(person => {
-    if(!person) next()
+    if(!person) return res.status(404).end()
     res.json(person)
-   })
-  .catch( () => res.status(400).end())
+  })
+  .catch(next)
 })
 
-app.delete('/api/persons/:id', (req, res) => {
+app.put('/api/persons/:id', (req, res, next) => {
+  const id = req.params.id
+  const {name, phone} = req.body
+
+  if(!name && !phone) return res.status(400).send({error: 'name or phone is missing'})
+  
+  Person.findByIdAndUpdate(id, {name, phone}, {new: true})
+  .then( updatedPerson => {
+    if(!updatedPerson) return res.status(404).end()
+    res.json(updatedPerson)
+   })
+  .catch(next)
+})
+
+app.delete('/api/persons/:id', (req, res, next) => {
   const id = req.params.id
 
   Person.findByIdAndRemove(id)
-  .then( personRemoved => {
-    res.status(204).end()
-  })
-  .catch( () => res.status(400).end())
+  .then( () => res.status(204).end())
+  .catch(next)
 })
 
 app.use((req, res) => {
   res.status(404).end()
 })
+
+const errorHandler = (error, req, res, next) => {
+  console.error(error.message)
+  if(error.name === 'CastError') return res.status(400).send( {error: 'malformatted id'} )
+  res.status(500).end()
+}
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 
