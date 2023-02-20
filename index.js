@@ -35,8 +35,6 @@ app.get('/api/persons', (req, res, next) => {
 app.post('/api/persons', (req, res, next) => {
   const { name, phone } = req.body
 
-  if(!name || !phone) return res.status(400).send({error: 'name or phone is missing'})
-
   Person.create({name, phone})
   .then( () => {
     Person.find({})
@@ -48,7 +46,7 @@ app.post('/api/persons', (req, res, next) => {
 
 app.get('/api/persons/:id', (req, res, next) => {
   const id = req.params.id
-  
+
   Person.findById(id)
   .then(person => {
     if(!person) return res.status(404).end()
@@ -61,9 +59,7 @@ app.put('/api/persons/:id', (req, res, next) => {
   const id = req.params.id
   const {name, phone} = req.body
 
-  if(!name && !phone) return res.status(400).send({error: 'name or phone is missing'})
-  
-  Person.findByIdAndUpdate(id, {name, phone}, {new: true})
+  Person.findByIdAndUpdate(id, {name, phone}, {new: true, runValidators: true})
   .then( updatedPerson => {
     if(!updatedPerson) return res.status(404).end()
     res.json(updatedPerson)
@@ -84,8 +80,9 @@ app.use((req, res) => {
 })
 
 const errorHandler = (error, req, res, next) => {
-  console.error(error.message)
+  console.error(error.message, error.name)
   if(error.name === 'CastError') return res.status(400).send( {error: 'malformatted id'} )
+  if(error.name === 'ValidationError') return res.status(400).send( {error: error.message} )
   res.status(500).end()
 }
 
