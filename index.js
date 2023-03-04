@@ -15,64 +15,64 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :b
 
 app.get('/info', (req, res, next) => {
   Person.estimatedDocumentCount()
-  .then( totalEntries => {
-    res.send(`
+    .then( totalEntries => {
+      res.send(`
       <p>Phonebook has info for ${totalEntries} people</p>
       <p>${Date()}</p>
     `)
-  })
-  .catch(next)
+    })
+    .catch(next)
 })
 
 app.get('/api/persons', (req, res, next) => {
   Person.find({})
-  .then( result => {
-    res.json(result)
-  })
-  .catch(next)
+    .then( result => {
+      res.json(result)
+    })
+    .catch(next)
 })
 
 app.post('/api/persons', (req, res, next) => {
   const { name, phone } = req.body
 
-  Person.create({name, phone})
-  .then( () => {
-    Person.find({})
-    .then(persons => res.json(persons))
+  Person.create({ name, phone })
+    .then( () => {
+      Person.find({})
+        .then(persons => res.json(persons))
+        .catch(next)
+    })
     .catch(next)
-  })
-  .catch(next)
 })
 
 app.get('/api/persons/:id', (req, res, next) => {
   const id = req.params.id
 
   Person.findById(id)
-  .then(person => {
-    if(!person) return res.status(404).end()
-    res.json(person)
-  })
-  .catch(next)
+    .then(person => {
+      if(!person) return res.status(404).end()
+      res.json(person)
+    })
+    .catch(next)
 })
 
 app.put('/api/persons/:id', (req, res, next) => {
   const id = req.params.id
-  const {name, phone} = req.body
+  const { name, phone } = req.body
 
-  Person.findByIdAndUpdate(id, {name, phone}, {new: true, runValidators: true})
-  .then( updatedPerson => {
-    if(!updatedPerson) return res.status(404).end()
-    res.json(updatedPerson)
-   })
-  .catch(next)
+  Person.findByIdAndUpdate(id, { name, phone }, { new: true, runValidators: true })
+    .then( updatedPerson => {
+      if(!updatedPerson) return res.status(404).end()
+      res.json(updatedPerson)
+    })
+    .catch(next)
 })
 
 app.delete('/api/persons/:id', (req, res, next) => {
   const id = req.params.id
 
   Person.findByIdAndRemove(id)
-  .then( () => res.status(204).end())
-  .catch(next)
+    .then( () => res.status(204).end())
+    .catch(next)
 })
 
 app.use((req, res) => {
@@ -81,8 +81,8 @@ app.use((req, res) => {
 
 const errorHandler = (error, req, res, next) => {
   console.error(error.message, error.name)
-  if(error.name === 'CastError') return res.status(400).send( {error: 'malformatted id'} )
-  if(error.name === 'ValidationError') return res.status(400).send( {error: error.message} )
+  if(error.name === 'CastError') return res.status(400).send( { error: 'malformatted id' } )
+  if(error.name === 'ValidationError') return res.status(400).send( { error: error.message } )
   res.status(500).end()
 }
 
